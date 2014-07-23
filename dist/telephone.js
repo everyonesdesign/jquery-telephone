@@ -7,11 +7,12 @@
 
         //setting options
         var defaults = {
-            responsive: true
+            //mask
+            //type (discus/electro)
+            //speed of discus return, ms
         };
 
         options = $.extend(defaults, options);
-
 
     };
 
