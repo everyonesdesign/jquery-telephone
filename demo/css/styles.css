@@ -8,6 +8,10 @@
     clear: both;
 }
 
+body {
+    height: 500px;
+}
+
 .jqt-container {
     width: 150px;
     padding: 5px;
@@ -45,5 +49,27 @@
 }
 .jqt-button:hover {
     background: #eee;
+}
+.jqt-disc {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    -webkit-box-shadow: 0 0 3px rgba(0,0,0,.4);
+    -moz-box-shadow: 0 0 3px rgba(0,0,0,.4);
+    box-shadow: 0 0 3px rgba(0,0,0,.4);
+    background: #fff;
+}
+
+.jqt-disc:before {
+    content: "";
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    top: 4px;
+    left: 50%;
+    margin-left: -2px;
+    background: #222;
 }
 
