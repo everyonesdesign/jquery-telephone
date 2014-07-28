@@ -6,7 +6,8 @@
         var $this = $(this),
             $body = $(document.body),
             transformVendors = ["-moz-", "-webkit-", "-o-", "-ms-", ""],
-            degreeStorage = {deg: 0};
+            degreeStorage = {deg: 0},
+            beginAngle = 0;
 
         //setting options
         var defaults = {
@@ -40,6 +41,8 @@
         }
         discNumbersString += "<li class='jqt-discNumber jqt-discNumber0'>0</li>";
         markup.discContainer = $("<div class='jqt-discContainer'><ul class='jqt-discNumbersContainer'>" + discNumbersString + "</ul></div>");
+        markup.disc.rotate = false;
+        markup.disc.finish = false;
 
         //stop closing on container click
         markup.object.on({
@@ -62,18 +65,20 @@
                 markup.disc.css(transformVendors[i]+"transform", "rotate(" + degrees + "deg)");
             }
         }
-        function calcRotation(e) {
-            if (!markup.disc.rotate) return;
+        function calcRotation(e, initial) {
+            if (!markup.disc.rotate) return null;
+            initial = initial || false;
+            beginAngle = initial ? 0 : beginAngle;
             var offset = markup.discContainer.offset(), //offset by parent because disc itself rotating
                 center_x = (offset.left) + (markup.disc.outerWidth()/2),
                 center_y = (offset.top) + (markup.disc.outerHeight()/2),
                 mouse_x = e.pageX; var mouse_y = e.pageY,
                 radians = Math.atan2(mouse_x - center_x, mouse_y - center_y),
-                degree = (radians * (180 / Math.PI) * -1) + 90;
+                degree = (radians * (180 / Math.PI) * -1) + 90 - beginAngle;
+            if (degree < 0) degree = degree + 360;
             if (degree > 0 && degree < 45) degree = 0;
             else if (degree > 45 && degree < 90) degree = 90;
-            setRotation(degree);
-            markup.disc.data("angle", degree);
+            return degree;
         }
         //on rotationBegin
         function beginRotation() {
@@ -81,28 +86,30 @@
             markup.disc.rotate = true;
         }
         //on rotationFinish
-        function finishRotation() {
-            markup.disc.rotate = false;
-            degreeStorage.deg = markup.disc.data("angle");
-            if (degreeStorage.deg) {
-                $(degreeStorage).animate({deg: 360}, {
-                    duration: 500,
-                    step: function(now) {
-                        for (var i=0; i<transformVendors.length; i++) {
-                            setRotation(now);
-                            markup.disc.data("angle", now);
-                        }
+        function finishRotation(degrees) {
+            if (degrees == 0) return; //not to make full circle =)
+            degreeStorage.deg = degrees;
+            markup.disc.finish = true;
+            $(degreeStorage).animate({deg: 360}, {
+                duration: 500,
+                step: function(now) {
+                    for (var i=0; i<transformVendors.length; i++) {
+                        setRotation(now);
                     }
-                });
-            }
+                },
+                complete: function() {
+                    markup.disc.rotate = false;
+                    markup.disc.finish = false;
+                }
+            });
         }
         //disc listeners
         markup.disc.on({
             mousedown: function(e) {
                 beginRotation();
-                calcRotation(e);
-            },
-            mouseup: finishRotation
+                beginAngle = calcRotation(e, true);
+                setRotation(e);
+            }
         });
         markup.object.append(markup.discContainer);
 
@@ -128,15 +135,19 @@
         });
 
         $body.on({
-            click: function() {
+            click: function(e) {
                 if (!markup.disc.rotate) markup.object.hide();
-                finishRotation();
             },
-            mousemove: calcRotation
+            mouseup: function(e) {
+                if (markup.disc.rotate && !markup.disc.finish) finishRotation(calcRotation(e));
+            },
+            mousemove: function(e) {
+                if (markup.disc.rotate && !markup.disc.finish) {
+                    var angle = calcRotation(e);
+                    setRotation(angle);
+                }
+            }
         });
-
-
-
 
         return this;
 
