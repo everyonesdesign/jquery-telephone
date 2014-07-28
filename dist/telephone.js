@@ -65,25 +65,25 @@
                 markup.disc.css(transformVendors[i]+"transform", "rotate(" + degrees + "deg)");
             }
         }
-        function calcRotation(e, initial) {
+        function calcRotation(e) {
             if (!markup.disc.rotate) return null;
-            initial = initial || false;
-            beginAngle = initial ? 0 : beginAngle;
             var offset = markup.discContainer.offset(), //offset by parent because disc itself rotating
                 center_x = (offset.left) + (markup.disc.outerWidth()/2),
                 center_y = (offset.top) + (markup.disc.outerHeight()/2),
                 mouse_x = e.pageX; var mouse_y = e.pageY,
                 radians = Math.atan2(mouse_x - center_x, mouse_y - center_y),
-                degree = (radians * (180 / Math.PI) * -1) + 90 - beginAngle;
+                degree = (radians * (180 / Math.PI) * -1) + 90;
             if (degree < 0) degree = degree + 360;
             if (degree > 0 && degree < 45) degree = 0;
             else if (degree > 45 && degree < 90) degree = 90;
             return degree;
         }
         //on rotationBegin
-        function beginRotation() {
+        function beginRotation(e) {
             $(degreeStorage).stop();
             markup.disc.rotate = true;
+            markup.disc.finish = false;
+            beginAngle = calcRotation(e);
         }
         //on rotationFinish
         function finishRotation(degrees) {
@@ -106,9 +106,8 @@
         //disc listeners
         markup.disc.on({
             mousedown: function(e) {
-                beginRotation();
-                beginAngle = calcRotation(e, true);
-                setRotation(e);
+                beginRotation(e);
+                setRotation(calcRotation(e));
             }
         });
         markup.object.append(markup.discContainer);
